@@ -1,5 +1,6 @@
 
-FROM eclipse-temurin:21-jdk AS build
+
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
@@ -9,12 +10,12 @@ RUN chmod +x mvnw
 
 RUN ./mvnw clean package -DskipTests
 
-# Run Stage
+
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
