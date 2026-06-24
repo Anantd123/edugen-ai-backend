@@ -26,8 +26,7 @@ public class QuestionController {
     private final GeminiService geminiService;
 
     @PostMapping("/generate")
-    public ResponseEntity<List<QuestionDTO>>
-    generateQuestions(
+    public ResponseEntity<?> generateQuestions(
 
             @RequestParam("file")
             MultipartFile file,
@@ -41,67 +40,65 @@ public class QuestionController {
             @RequestParam("questionCount")
             Integer questionCount
 
-    ) throws Exception {
+    ) {
 
-        System.out.println(
-                "================================="
-        );
+        try {
 
-        System.out.println(
-                "File Name: "
-                        + file.getOriginalFilename()
-        );
+            System.out.println("=================================");
+            System.out.println("REQUEST RECEIVED");
+            System.out.println("File Name = " + file.getOriginalFilename());
+            System.out.println("File Size = " + file.getSize());
 
-        System.out.println(
-                "File Size: "
-                        + file.getSize()
-        );
+            String extractedText =
+                    fileExtractorService.extractText(file);
 
-        System.out.println(
-                "Starting Extraction..."
-        );
+            System.out.println(
+                    "Extracted Text Length = "
+                            + extractedText.length()
+            );
 
-        String extractedText =
-                fileExtractorService.extractText(file);
+            String aiResponse =
+                    geminiService.generateQuestions(
+                            extractedText,
+                            questionTypes,
+                            difficulty,
+                            questionCount
+                    );
 
-        System.out.println(
-                "Extracted Text Length = "
-                        + extractedText.length()
-        );
+            System.out.println("Gemini Response:");
+            System.out.println(aiResponse);
 
-        System.out.println(
-                "Sending To Gemini..."
-        );
+            ObjectMapper mapper =
+                    new ObjectMapper();
 
-        String aiResponse =
-                geminiService.generateQuestions(
-                        extractedText,
-                        questionTypes,
-                        difficulty,
-                        questionCount
-                );
+            List<QuestionDTO> questions =
+                    mapper.readValue(
+                            aiResponse,
+                            new TypeReference<List<QuestionDTO>>() {
+                            }
+                    );
 
-        ObjectMapper mapper =
-                new ObjectMapper();
+            System.out.println(
+                    "Questions Generated = "
+                            + questions.size()
+            );
 
-        List<QuestionDTO> questions =
-                mapper.readValue(
-                        aiResponse,
-                        new TypeReference<List<QuestionDTO>>() {
-                        }
-                );
+            return ResponseEntity.ok(
+                    questions
+            );
 
-        System.out.println(
-                "Questions Generated = "
-                        + questions.size()
-        );
+        } catch (Exception e) {
 
-        System.out.println(
-                "================================="
-        );
+            e.printStackTrace();
 
-        return ResponseEntity.ok(
-                questions
-        );
+            return ResponseEntity
+                    .status(500)
+                    .body(
+                            "ERROR: "
+                                    + e.getClass().getSimpleName()
+                                    + " -> "
+                                    + e.getMessage()
+                    );
+        }
     }
 }
