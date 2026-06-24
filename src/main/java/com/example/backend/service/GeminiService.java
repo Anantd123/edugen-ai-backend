@@ -28,7 +28,16 @@ public class GeminiService {
                         + (apiKey == null ? 0 : apiKey.length())
         );
     }
-    
+    import jakarta.annotation.PostConstruct;
+
+    @PostConstruct
+    public void verifyKey() {
+
+        System.out.println("===============");
+        System.out.println("API KEY = " + apiKey);
+        System.out.println("LENGTH = " + apiKey.length());
+        System.out.println("===============");
+    }
     public String generateQuestions(
             String pdfContent,
             String questionTypes,
