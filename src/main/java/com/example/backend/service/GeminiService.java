@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,15 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
+    @PostConstruct
+    public void testKey() {
+
+        System.out.println(
+                "API KEY LENGTH = "
+                        + (apiKey == null ? 0 : apiKey.length())
+        );
+    }
+    
     public String generateQuestions(
             String pdfContent,
             String questionTypes,
@@ -193,5 +203,7 @@ Content:
                             + e.getMessage()
             );
         }
+
+
     }
 }
