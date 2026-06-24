@@ -28,7 +28,6 @@ public class GeminiService {
                         + (apiKey == null ? 0 : apiKey.length())
         );
     }
-    import jakarta.annotation.PostConstruct;
 
     @PostConstruct
     public void verifyKey() {
