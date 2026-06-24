@@ -6,6 +6,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HealthController {
 
+    @GetMapping("/")
+    public String home() {
+        return "EduGen AI Backend Running";
+    }
+
     @GetMapping("/health")
     public String health() {
         return "UP";
