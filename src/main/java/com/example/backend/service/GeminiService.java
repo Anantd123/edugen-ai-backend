@@ -37,12 +37,13 @@ public class GeminiService {
         System.out.println("LENGTH = " + apiKey.length());
         System.out.println("===============");
     }
+
     public String generateQuestions(
             String pdfContent,
             String questionTypes,
             String difficulty,
             Integer questionCount
-    ) {
+    ) throws InterruptedException {
 
         if (pdfContent != null
                 && pdfContent.length() > 60000) {
@@ -58,74 +59,74 @@ public class GeminiService {
             );
         }
         String prompt = """
-You are an expert teacher.
-
-Generate EXACTLY %d questions.
-
-Selected Question Types:
-%s
-
-Difficulty Level:
-%s
-
-Return ONLY valid JSON.
-
-JSON Format:
-
-[
-  {
-    "type":"MCQ",
-    "question":"Question Text",
-    "options":[
-      "Option A",
-      "Option B",
-      "Option C",
-      "Option D"
-    ]
-  },
-  {
-    "type":"Short Answer",
-    "question":"Question Text"
-  },
-  {
-    "type":"Long Answer",
-    "question":"Question Text"
-  },
-  {
-    "type":"Assignment",
-    "question":"Question Text"
-  },
-  {
-    "type":"True / False",
-    "question":"Question Text",
-    "options":[
-      "True",
-      "False"
-    ]
-  }
-]
-
-Rules:
-
-- Generate EXACTLY %d questions.
-- Generate ONLY selected question types.
-- Difficulty must match selected difficulty.
-- Every question must be based on the provided content.
-- Do not repeat questions.
-- MCQ must contain exactly 4 options.
-- True / False must contain exactly 2 options.
-- Short Answer must not contain options.
-- Long Answer must not contain options.
-- Assignment must not contain options.
-- Return only JSON.
-- Do not return markdown.
-- Do not return explanations.
-- Do not return headings.
-
-Content:
-
-%s
-"""
+                You are an expert teacher.
+                
+                Generate EXACTLY %d questions.
+                
+                Selected Question Types:
+                %s
+                
+                Difficulty Level:
+                %s
+                
+                Return ONLY valid JSON.
+                
+                JSON Format:
+                
+                [
+                  {
+                    "type":"MCQ",
+                    "question":"Question Text",
+                    "options":[
+                      "Option A",
+                      "Option B",
+                      "Option C",
+                      "Option D"
+                    ]
+                  },
+                  {
+                    "type":"Short Answer",
+                    "question":"Question Text"
+                  },
+                  {
+                    "type":"Long Answer",
+                    "question":"Question Text"
+                  },
+                  {
+                    "type":"Assignment",
+                    "question":"Question Text"
+                  },
+                  {
+                    "type":"True / False",
+                    "question":"Question Text",
+                    "options":[
+                      "True",
+                      "False"
+                    ]
+                  }
+                ]
+                
+                Rules:
+                
+                - Generate EXACTLY %d questions.
+                - Generate ONLY selected question types.
+                - Difficulty must match selected difficulty.
+                - Every question must be based on the provided content.
+                - Do not repeat questions.
+                - MCQ must contain exactly 4 options.
+                - True / False must contain exactly 2 options.
+                - Short Answer must not contain options.
+                - Long Answer must not contain options.
+                - Assignment must not contain options.
+                - Return only JSON.
+                - Do not return markdown.
+                - Do not return explanations.
+                - Do not return headings.
+                
+                Content:
+                
+                %s
+                """
                 .formatted(
                         questionCount,
                         questionTypes,
@@ -167,13 +168,41 @@ Content:
                         headers
                 );
 
-        ResponseEntity<Map> response =
-                restTemplate.exchange(
+        ResponseEntity<Map> response = null;
+
+        int maxAttempts = 3;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+
+            try {
+
+                response = restTemplate.exchange(
                         url,
                         HttpMethod.POST,
                         entity,
                         Map.class
                 );
+
+                break;
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Gemini Attempt "
+                                + attempt
+                                + " Failed"
+                );
+
+                if (attempt == maxAttempts) {
+
+                    throw new RuntimeException(
+                            "Gemini AI is busy. Please try again in a few moments."
+                    );
+                }
+
+                Thread.sleep(3000);
+            }
+        }
 
         try {
 
