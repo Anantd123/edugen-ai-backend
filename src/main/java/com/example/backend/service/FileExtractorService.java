@@ -97,6 +97,11 @@ public class FileExtractorService {
                         + text.length()
         );
 
+        System.out.println("=================================");
+        System.out.println("Extracted PDF Text:");
+        System.out.println(text);
+        System.out.println("=================================");
+
         if (text != null
                 && text.trim().length() > 100) {
 
